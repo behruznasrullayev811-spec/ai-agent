@@ -57,7 +57,7 @@ Agar buyruq faqat local kompyuterda bajarilishi kerak bo'lsa
             tizim = TIZIM_XABARI
 
         model  = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.0-flash",
             system_instruction=tizim
         )
         javob  = model.generate_content(buyruq)
