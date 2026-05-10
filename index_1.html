@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>AI Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080810;--surface:#0f0f1e;--card:#13131f;--border:#1e1e35;--border2:#2a2a45;--accent:#7c6fff;--accent2:#a78bfa;--green:#34d399;--red:#f87171;--text:#e8e8f8;--text2:#7878a8;--text3:#4a4a7a;--sans:'Onest',sans-serif;--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;height:-webkit-fill-available;font-family:var(--sans);background:var(--bg);color:var(--text);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,111,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,0.04) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.app{display:flex;flex-direction:column;height:100dvh;position:relative;z-index:1}
+
+/* SIDEBAR — faqat katta ekranda */
+@media(min-width:768px){
+  .app{flex-direction:row}
+  .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px;gap:6px;flex-shrink:0}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+}
+@media(max-width:767px){.sidebar{display:none}.main{display:flex;flex-direction:column;height:100dvh}}
+
+.logo{display:flex;align-items:center;gap:10px;padding:8px 10px 16px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),#5b4fef);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1em}
+.logo-title{font-weight:700;font-size:1em}
+.logo-sub{font-size:0.7em;color:var(--text2)}
+.new-btn{background:linear-gradient(135deg,var(--accent),#5b4fef);border:none;border-radius:10px;padding:10px;color:white;font-family:var(--sans);font-size:0.83em;font-weight:500;cursor:pointer;width:100%;margin-bottom:6px}
+.sidebar-label{font-size:0.68em;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);padding:6px 10px 2px}
+.chat-item{padding:8px 10px;border-radius:8px;font-size:0.8em;color:var(--text2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-item:hover,.chat-item.active{background:var(--border);color:var(--text)}
+.sidebar-bottom{margin-top:auto;padding-top:10px;border-top:1px solid var(--border)}
+.user-info{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer}
+.user-info:hover{background:var(--border)}
+.avatar{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;color:white;flex-shrink:0}
+.user-name{font-size:0.82em;font-weight:500}
+.user-role{font-size:0.68em;color:var(--text2)}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:rgba(8,8,16,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),#5b4fef);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.topbar-title{font-weight:700;font-size:0.95em}
+.topbar-sub{font-size:0.7em;color:var(--text2)}
+.status{display:flex;align-items:center;gap:5px;font-size:0.73em;color:var(--green)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* MODE TABS */
+.mode-tabs{display:flex;padding:9px 14px;gap:6px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.mode-tabs::-webkit-scrollbar{display:none}
+.mode-tab{padding:6px 15px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:0.78em;cursor:pointer;white-space:nowrap;font-family:var(--sans);transition:all 0.2s;flex-shrink:0}
+.mode-tab.active{background:rgba(124,111,255,0.15);border-color:var(--accent);color:var(--accent2);font-weight:600}
+
+/* MESSAGES */
+.messages{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:2px;-webkit-overflow-scrolling:touch}
+.messages::-webkit-scrollbar{width:3px}
+.messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 16px;gap:14px;animation:fadeUp 0.5s ease}
+.welcome-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#5b4fef);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:1.8em;box-shadow:0 16px 40px rgba(124,111,255,0.3);animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.welcome h2{font-size:1.5em;font-weight:800;background:linear-gradient(135deg,var(--text) 30%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.welcome p{font-size:0.87em;color:var(--text2);line-height:1.6;max-width:320px}
+.suggestions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:400px}
+.suggestion{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;text-align:left;cursor:pointer;font-size:0.79em;color:var(--text2);line-height:1.4;transition:all 0.2s}
+.suggestion:hover,.suggestion:active{background:rgba(124,111,255,0.1);border-color:var(--accent);transform:scale(0.98)}
+.suggestion strong{display:block;color:var(--text);margin-bottom:3px}
+
+.message{display:flex;gap:10px;padding:9px 0;animation:fadeUp 0.3s ease}
+.message.user{flex-direction:row-reverse}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:0.85em;flex-shrink:0;margin-top:2px}
+.message.user .msg-avatar{background:linear-gradient(135deg,var(--accent),#5b4fef);color:white;font-weight:700}
+.message.ai .msg-avatar{background:var(--card);border:1px solid var(--border2)}
+.msg-content{max-width:78%;display:flex;flex-direction:column;gap:4px}
+.message.user .msg-content{align-items:flex-end}
+.msg-bubble{padding:11px 14px;border-radius:16px;font-size:0.87em;line-height:1.65;word-break:break-word}
+.message.user .msg-bubble{background:rgba(124,111,255,0.15);border:1px solid rgba(124,111,255,0.25);border-radius:16px 4px 16px 16px}
+.message.ai .msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:4px 16px 16px 16px}
+.msg-bubble pre{background:#050510;border:1px solid var(--border2);border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;font-family:monospace;font-size:0.82em;color:#a78bfa;-webkit-overflow-scrolling:touch}
+.msg-bubble code{background:rgba(124,111,255,0.12);border-radius:4px;padding:1px 5px;font-family:monospace;font-size:0.88em;color:var(--accent2)}
+.msg-time{font-size:0.67em;color:var(--text3);padding:0 4px}
+.message.user .msg-time{text-align:right}
+
+.typing{display:flex;gap:4px;align-items:center;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:4px 16px 16px 16px;width:fit-content}
+.typing span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:0.2s}
+.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* INPUT */
+.input-area{flex-shrink:0;background:rgba(8,8,16,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:10px 14px;padding-bottom:calc(10px + var(--safe-bottom))}
+.input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:6px 6px 6px 16px;transition:border-color 0.2s;max-width:760px;margin:0 auto}
+.input-wrap:focus-within{border-color:var(--accent)}
+#userInput{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--sans);font-size:0.93em;padding:8px 0;resize:none;max-height:120px;line-height:1.5}
+#userInput::placeholder{color:var(--text3)}
+.input-btns{display:flex;align-items:center;gap:5px}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.05em;transition:all 0.2s}
+.icon-btn:hover{background:var(--border);color:var(--text)}
+.icon-btn:active{transform:scale(0.92)}
+.icon-btn.recording{background:rgba(248,113,113,0.15);color:var(--red);animation:recPulse 1s infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,0.3)}50%{box-shadow:0 0 0 6px rgba(248,113,113,0)}}
+.send-btn{width:36px;height:36px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#5b4fef);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1em;transition:all 0.15s}
+.send-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,111,255,0.4)}
+.send-btn:active{transform:scale(0.9)}
+.send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.input-hint{text-align:center;font-size:0.7em;color:var(--text3);margin-top:8px;max-width:760px;margin-left:auto;margin-right:auto}
+@media(max-width:767px){.input-hint{display:none}}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:0.82em;color:var(--text);opacity:0;transition:all 0.3s;z-index:100;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR (faqat kompyuterda) -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div><div class="logo-title">AI Agent</div><div class="logo-sub">Shaxsiy yordamchi</div></div>
+    </div>
+    <button class="new-btn" onclick="yangiSuhbat()">✏️ Yangi suhbat</button>
+    <div class="sidebar-label">Oxirgi suhbatlar</div>
+    <div class="chat-item active">💬 Laptop buyruqlari</div>
+    <div class="chat-item">💻 C# OOP misollari</div>
+    <div class="chat-item">🎬 YouTube videolar</div>
+    <div class="chat-item">📁 Fayl boshqaruvi</div>
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="avatar">B</div>
+        <div><div class="user-name">Behruz</div><div class="user-role">Claude Sonnet 4</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-icon">🤖</div>
+        <div><div class="topbar-title">AI Agent</div><div class="topbar-sub">Shaxsiy yordamchi</div></div>
+      </div>
+      <div class="status"><div class="dot"></div>Faol</div>
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="rejimTanla(this,'laptop')">🖥️ Laptop</button>
+      <button class="mode-tab" onclick="rejimTanla(this,'csharp')">💻 C# Kod</button>
+      <button class="mode-tab" onclick="rejimTanla(this,'suhbat')">💬 Suhbat</button>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">🤖</div>
+        <h2>Assalomu alaykum!</h2>
+        <p>Shaxsiy AI agentingiz. Ovoz yoki matn orqali buyruq bering.</p>
+        <div class="suggestions">
+          <div class="suggestion" onclick="taklif(this)"><strong>📱 Telegram</strong>Begzodga salom de</div>
+          <div class="suggestion" onclick="taklif(this)"><strong>🎬 YouTube</strong>Lofi music qidir</div>
+          <div class="suggestion" onclick="taklif(this)"><strong>💻 C# kod</strong>OOP klass yoz</div>
+          <div class="suggestion" onclick="taklif(this)"><strong>🌐 Brauzer</strong>Ob-havo qidir</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="Buyruq yozing..."
+          onkeydown="enterBosish(event)" oninput="avtomatikUlayish()"></textarea>
+        <div class="input-btns">
+          <button class="icon-btn" id="micBtn" onclick="ovozToggle()" title="Ovoz">🎤</button>
+          <button class="send-btn" id="sendBtn" onclick="xabarYuborish()" title="Yuborish">➤</button>
+        </div>
+      </div>
+      <div class="input-hint">Enter — yuborish &nbsp;·&nbsp; Shift+Enter — yangi qator &nbsp;·&nbsp; 🎤 — ovoz</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ⚠️ NGROK LINKINI SHU YERGA YOZING
+const BACKEND = "https://enjoying-outplayed-defiant.ngrok-free.dev";
+// Misol: const BACKEND = "https://abc123.ngrok-free.app";
+
+let joriyRejim="laptop", yozilmoqda=false, ovozYoqilgan=false, recognition=null;
+
+function toast(m,v=2500){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),v)}
+function yangiSuhbat(){document.getElementById('messages').innerHTML='<div class="welcome" id="welcome"><div class="welcome-icon">🤖</div><h2>Yangi suhbat</h2><p>Buyruq bering.</p></div>'}
+function rejimTanla(btn,r){document.querySelectorAll('.mode-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');joriyRejim=r;const p={laptop:"Buyruq yozing...",csharp:"C# buyrug'i...",suhbat:"Xohlagan narsani so'rang..."};document.getElementById('userInput').placeholder=p[r]}
+function taklif(el){document.getElementById('userInput').value=el.querySelector('strong').nextSibling.textContent.trim();xabarYuborish()}
+function vaqtOl(){return new Date().toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'})}
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function matnFormat(t){t=t.replace(/```(\w+)?\n?([\s\S]*?)```/g,(_,l,k)=>`<pre><code>${escHtml(k.trim())}</code></pre>`);t=t.replace(/`([^`]+)`/g,'<code>$1</code>');t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');t=t.replace(/\n/g,'<br>');return t}
+
+function xabarQosh(matn,tur){
+  const w=document.getElementById('welcome');if(w)w.remove();
+  const msgs=document.getElementById('messages');
+  const div=document.createElement('div');div.className=`message ${tur}`;
+  div.innerHTML=`<div class="msg-avatar">${tur==='user'?'B':'🤖'}</div><div class="msg-content"><div class="msg-bubble">${matnFormat(matn)}</div><div class="msg-time">${vaqtOl()}</div></div>`;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function yozilmoqdaKor(){const msgs=document.getElementById('messages');const div=document.createElement('div');div.className='message ai';div.id='typing-ind';div.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div>';msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight}
+function yozilmoqdaOchir(){const e=document.getElementById('typing-ind');if(e)e.remove()}
+
+async function xabarYuborish(){
+  const input=document.getElementById('userInput');
+  const matn=input.value.trim();
+  if(!matn||yozilmoqda)return;
+  if(BACKEND==="NGROK_URL_BU_YERGA"){
+    xabarQosh(matn,'user');
+    xabarQosh("⚠️ **Backend URL kiritilmagan!**\n\n`index.html` faylida:\n```\nconst BACKEND = \"https://sizning-ngrok.ngrok-free.app\";\n```\n\nAvval `py backend.py` ishga tushiring, keyin `ngrok http 8000`",'ai');
+    input.value='';return;
+  }
+  input.value='';input.style.height='auto';yozilmoqda=true;document.getElementById('sendBtn').disabled=true;
+  xabarQosh(matn,'user');yozilmoqdaKor();
+  try{
+    const r=await fetch(`${BACKEND}/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({buyruq:matn,rejim:joriyRejim})});
+    yozilmoqdaOchir();
+    if(r.ok){const d=await r.json();xabarQosh(d.javob||"✅ Bajarildi!",'ai')}
+    else xabarQosh("❌ Server xatosi",'ai');
+  }catch(e){yozilmoqdaOchir();xabarQosh("❌ Backend server ishlamayapti!\n`py backend.py` ni ishga tushiring",'ai')}
+  yozilmoqda=false;document.getElementById('sendBtn').disabled=false;input.focus();
+}
+
+function enterBosish(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();xabarYuborish()}}
+function avtomatikUlayish(){const e=document.getElementById('userInput');e.style.height='auto';e.style.height=Math.min(e.scrollHeight,120)+'px'}
+
+function ovozToggle(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast("⚠️ Chrome brauzerida ishlaydi");return}
+  const btn=document.getElementById('micBtn');
+  if(ovozYoqilgan){recognition.stop();return}
+  recognition=new SR();recognition.lang='uz-UZ';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onstart=()=>{ovozYoqilgan=true;btn.classList.add('recording');btn.textContent='⏹';toast("🎤 Gapiring...")};
+  recognition.onresult=e=>{document.getElementById('userInput').value=e.results[0][0].transcript;xabarYuborish()};
+  recognition.onend=()=>{ovozYoqilgan=false;btn.classList.remove('recording');btn.textContent='🎤'};
+  recognition.onerror=()=>{ovozYoqilgan=false;btn.classList.remove('recording');btn.textContent='🎤';toast("❌ Ovoz xatosi")};
+  recognition.start();
+}
+window.visualViewport?.addEventListener('resize',()=>{const m=document.getElementById('messages');m.scrollTop=m.scrollHeight});
+</script>
+</body>
+</html>
