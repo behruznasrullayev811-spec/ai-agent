@@ -71,7 +71,7 @@ Agar buyruq faqat local kompyuterda bajarilishi kerak bo'lsa
 def health():
     return jsonify({
         "status": "ishlayapti",
-        "model":  "Gemini 1.5 Flash",
+        "model":  "gemini-2.0-flash",
         "version": "cloud-1.0"
     })
 
