@@ -57,7 +57,7 @@ Agar buyruq faqat local kompyuterda bajarilishi kerak bo'lsa
             tizim = TIZIM_XABARI
 
         model  = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
+            model_name="gemini-2.0-flash-lite",
             system_instruction=tizim
         )
         javob  = model.generate_content(buyruq)
@@ -71,7 +71,7 @@ Agar buyruq faqat local kompyuterda bajarilishi kerak bo'lsa
 def health():
     return jsonify({
         "status": "ishlayapti",
-        "model":  "gemini-2.0-flash",
+        "model":  "gemini-2.0-flash-lite",
         "version": "cloud-1.0"
     })
 
